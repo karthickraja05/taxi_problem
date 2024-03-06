@@ -30,3 +30,10 @@ $('#modal_submit').click(function(){
 });
 
 
+$('#reset_app').click(function(){
+
+});
+
+$('#taxi_details').click(function(){
+
+});
