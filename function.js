@@ -57,7 +57,9 @@ function addLocations(){
 addLocations();
 
 
-
+function bookTaxi(dropLocation,from_time){
+    console.log(dropLocation,from_time);
+}
 
 
 

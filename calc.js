@@ -6,7 +6,7 @@ $(document).on('click','.location_btn',function(){
 
     var RemainingLocation = locations.filter((item) => item.id !== currentSelectedId);
 
-    let html = '<option value="">Drop Location</option>';
+    let html = '<option value="0">Drop Location</option>';
     RemainingLocation.forEach((item,index) => {
         html += `
         <option value="${item.id}">${item.name}</option>
@@ -26,6 +26,15 @@ $('#modal_close,#btn-close').click(function(){
 
 
 $('#modal_submit').click(function(){
+    var from_time = $('#from_time').val();
+    var dropLocation = $("#to_location option:selected").val();
+
+    if(dropLocation === '0'){
+        alert('Please select drop location');
+        return '';
+    }
+   
+    bookTaxi(dropLocation,from_time);
     
 });
 
