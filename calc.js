@@ -16,6 +16,7 @@ $(document).on('click','.location_btn',function(){
     $('#to_location').html(html);
     $('#from_time').val(0);
     $('#pickup_point').val(currentSelectedId);
+    $('#pickup_point_span').text(pickupLocation.name);
     $('#popup_modal').show();
 });
 

@@ -43,6 +43,7 @@ const taxiLocations = [
     },
 ];
 
+let bookingID = 1;
 
 const taxisData = {
 
@@ -101,28 +102,72 @@ function addLocations(){
 // add location
 addLocations();
 
+let taxiComingFrom;
 
 function bookTaxi(pickupLocation,dropLocation,from_time){
-    console.log(pickupLocation,dropLocation,from_time);
-    var taxi = findTaxi(pickupLocation);
-
-    console.log(taxi);
+    
+    var taxi = findTaxi(pickupLocation,from_time);
 
     updateTaxiStand(taxi,dropLocation);
 
+    var fare = calcFare(pickupLocation,dropLocation);
+    
+    var time = calcTime(pickupLocation,dropLocation);
+
+    updateTaxiData(taxi,fare,time,from_time);
+
+    bookingID++;
 }
+
+function updateTaxiData(taxi,fare,time,from_time){
+    console.log(taxi,fare,time);
+
+    if(taxisData[taxi] === undefined){
+        taxisData[taxi] = [
+            {
+                bookingID: bookingID,
+                fare : fare,
+                pickUpTime: time[0] + Number(from_time),
+                dropTime: time[0] + time[1] + Number(from_time),
+            }
+        ];
+    }else{
+        taxisData[taxi].push({
+            bookingID: bookingID,
+            fare : fare,
+            pickUpTime: time[0] + Number(from_time),
+            dropTime: time[0] + time[1] + Number(from_time),
+        })
+    }
+    
+}
+
+function calcTime(pickupLocation,dropLocation){
+
+    let travelTime = (Math.abs(dropLocation - pickupLocation))
+
+    let toPickTravelTime = (Math.abs(taxiComingFrom['id'] - pickupLocation));
+
+    return [
+        toPickTravelTime,
+        travelTime
+    ];
+}
+
 
 function updateTaxiStand(taxi,dropLocation){
     taxiLocations.forEach(item => {
         var taxi_stand = item.taxi_stand;
         if(taxi_stand.length > 0){
             let index;
-            while ((index = taxi_stand.indexOf(taxi)) !== -1) {
+            if ((index = taxi_stand.indexOf(taxi)) !== -1) {
+                taxiComingFrom = item;
                 taxi_stand.splice(index, 1);
+                item.taxi_stand = taxi_stand;
             }
-            item.taxi_stand = taxi_stand;
         }
     });
+
     let index = dropLocation - 1;
     if(taxiLocations[index]){
         let taxi_stand = taxiLocations[index].taxi_stand;
@@ -130,15 +175,36 @@ function updateTaxiStand(taxi,dropLocation){
         taxi_stand.sort();
         taxiLocations[index].taxi_stand = taxi_stand;
     }
-    console.log(taxiLocations);
 }
 
+
+function calcFare(pickupLocation,dropLocation){
+    let km = (Math.abs(dropLocation - pickupLocation)) * 15; // 15 mean km between each location
+
+    return ((km - 5) * 10) + 100 ;
+}
 
 function checkTaxiTime(taxi){
-    return taxi;
-}
 
-function findTaxi(pickupLocation){
+    if(taxisData[taxi] === undefined){
+        return taxi;
+    }
+    
+    var len = taxisData[taxi].length;
+
+    var lastRecord = taxisData[taxi][len-1];
+
+    if(lastRecord['dropTime'] > from_time){
+        console.log('true');
+        return false;
+    }else{
+        console.log('true');
+        return true;
+    }
+
+}   
+
+function findTaxi(pickupLocation,from_time){
     var totalLength = taxiLocations.length;
 
     // first check in current location
@@ -146,12 +212,18 @@ function findTaxi(pickupLocation){
 
     let availableTaxi = taxiLocations[pickupLocation - 1].taxi_stand;
     if(availableTaxi.length){
-        availableTaxi.forEach((taxi) => {
-            let res = checkTaxiTime(taxi);
-            if(res){
+
+        for (let index = 0; index < availableTaxi.length; index++) {
+            let taxi = availableTaxi[index];
+            let res = checkTaxiTime(taxi,from_time);
+            if(res === true){
                 freeTaxi.push(taxi);
+                break;
             }
-        });
+        }
+
+
+        
     }
     
     if(freeTaxi.length > 0){
@@ -168,12 +240,14 @@ function findTaxi(pickupLocation){
         if(leftSide >= 0){
             let availableTaxi = taxiLocations[leftSide].taxi_stand;
 
-            availableTaxi.forEach((taxi) => {
-                let res = checkTaxiTime(taxi);
-                if(res){
+            for (let index = 0; index < availableTaxi.length; index++) {
+                let taxi = availableTaxi[index];
+                let res = checkTaxiTime(taxi,from_time);
+                if(res === true){
                     freeTaxi.push(taxi);
+                    break;
                 }
-            });
+            }
             pass1 = true;
 
         }
@@ -182,12 +256,14 @@ function findTaxi(pickupLocation){
         if(rightSide <= totalLength -1){
             let availableTaxi = taxiLocations[rightSide].taxi_stand;
 
-            availableTaxi.forEach((taxi) => {
-                let res = checkTaxiTime(taxi);
-                if(res){
+            for (let index = 0; index < availableTaxi.length; index++) {
+                let taxi = availableTaxi[index];
+                let res = checkTaxiTime(taxi,from_time);
+                if(res === true){
                     freeTaxi.push(taxi);
+                    break;
                 }
-            });
+            }
             pass2 = true;
 
         }
