@@ -107,7 +107,10 @@ let taxiComingFrom;
 function bookTaxi(pickupLocation,dropLocation,from_time){
     
     var taxi = findTaxi(pickupLocation,from_time);
-
+    if(taxi === ''){
+        alert('No Taxis Available Right now');
+        return ;
+    }
     updateTaxiStand(taxi,dropLocation);
 
     var fare = calcFare(pickupLocation,dropLocation);
@@ -117,10 +120,17 @@ function bookTaxi(pickupLocation,dropLocation,from_time){
     updateTaxiData(taxi,fare,time,from_time);
 
     bookingID++;
+    
+    let message = `Taxi Number: ${taxi} will pick you at ${time[0] + parseInt(from_time)}`;
+
+    alert(message);
+
+    setTimeout(()=>{
+        $('#popup_modal').hide();
+    },500);
 }
 
 function updateTaxiData(taxi,fare,time,from_time){
-    console.log(taxi,fare,time);
 
     if(taxisData[taxi] === undefined){
         taxisData[taxi] = [
@@ -184,21 +194,19 @@ function calcFare(pickupLocation,dropLocation){
     return ((km - 5) * 10) + 100 ;
 }
 
-function checkTaxiTime(taxi){
+function checkTaxiTime(taxi,from_time){
 
     if(taxisData[taxi] === undefined){
-        return taxi;
+        return true;
     }
     
     var len = taxisData[taxi].length;
 
     var lastRecord = taxisData[taxi][len-1];
-
+    
     if(lastRecord['dropTime'] > from_time){
-        console.log('true');
         return false;
     }else{
-        console.log('true');
         return true;
     }
 
